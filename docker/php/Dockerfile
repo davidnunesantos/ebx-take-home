@@ -12,6 +12,7 @@ RUN apt-get update \
     libfreetype6-dev \
     libonig-dev \
     libzip-dev \
+    libxml2-dev \
     zip \
     unzip \
     git \
@@ -23,7 +24,7 @@ RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql \
     && docker-php-ext-install mbstring zip exif pcntl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd
+    && docker-php-ext-install gd dom
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
