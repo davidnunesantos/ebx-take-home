@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  webserver:
+    image: nginx:alpine
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+    ports:
+      - "8008:80"
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    environment:
+      - TZ=America/Sao_Paulo
