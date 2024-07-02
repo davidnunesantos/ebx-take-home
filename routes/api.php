@@ -15,3 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('reset', [AccountController::class, 'reset']);
+Route::get('balance', [AccountController::class, 'balance']);
