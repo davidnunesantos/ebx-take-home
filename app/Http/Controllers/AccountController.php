@@ -11,64 +11,48 @@ use Illuminate\Support\Facades\Storage;
  */
 class AccountController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    const FILE_NAME = 'accounts.txt';
 
     /**
      * Reset data state
      */
     public function reset()
     {
-        $file_name = 'accounts.txt';
         $status = 200;
         
         try {
-            if (Storage::exists($file_name)) {
-                Storage::delete($file_name);
+            if (Storage::exists(self::FILE_NAME)) {
+                Storage::delete(self::FILE_NAME);
             }
 
-            Storage::put('accounts.txt', '');
+            Storage::put('accounts.txt', json_encode([]));
         } catch (Exception $e) {
             $status = 500;
         }
 
-        return response('', $status);
+        return response('OK', $status);
+    }
+
+    public function balance(Request $request)
+    {
+        $account_id = $request->query('account_id');
+        $status = 200;
+        $response = 0;
+
+        if ($account_id) {
+            $accounts = json_decode(Storage::get(self::FILE_NAME));
+
+            if ($accounts && array_key_exists($account_id, $accounts)) {
+                $response = $accounts[$account_id]->balance;
+            } else {
+                $status = 404;
+                $response = 0;
+            }
+        } else {
+            $status = 400;
+            $response = 'Account ID is required';
+        }
+
+        return response($response, $status);
     }
 }
