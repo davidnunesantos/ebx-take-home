@@ -107,6 +107,10 @@ class AccountTest extends TestCase
         ]);
     }
 
+    /**
+     * Test transfer from existing account
+     * @test
+     */
     public function it_transfer_from_existing_account(): void
     {
         $response = $this->post('/event', [
@@ -116,7 +120,7 @@ class AccountTest extends TestCase
             'destination' => 300
         ]);
 
-        $response->assertStatus(200);
+        $response->assertStatus(201);
         $response->assertJson([
             'origin' => [
                 'id' => 100,
@@ -127,5 +131,22 @@ class AccountTest extends TestCase
                 'balance' => 15
             ]
         ]);
+    }
+
+    /**
+     * Test transfer from non-existing account
+     * @test
+     */
+    public function it_transfer_from_non_existing_account(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'transfer',
+            'origin' => 200,
+            'amount' => 15,
+            'destination' => 300
+        ]);
+
+        $response->assertStatus(404);
+        $response->assertContent('0');
     }
 }
