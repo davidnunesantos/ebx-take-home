@@ -112,6 +112,33 @@ class AccountController extends Controller
                     $status = 404;
                 }
                 break;
+            case 'transfer':
+                $origin = $request->input('origin');
+                $destination = $request->input('destination');
+
+                if (isset($accounts->$origin)) {
+                    $accounts->$origin->balance -= $request->input('amount');
+
+                    if (isset($accounts->$destination)) {
+                        $account_destination = $accounts->$destination;
+                    } else {
+                        $account_destination = new stdClass();
+                        $account_destination->id = $destination;
+                        $account_destination->balance = 0;
+                    }
+    
+                    $account_destination->balance += $request->input('amount');
+                    $accounts->$destination = $account_destination;
+
+                    $response = [
+                        'origin' => $accounts->$origin,
+                        'destination' => $account_destination
+                    ];
+                } else {
+                    $response = 0;
+                    $status = 404;
+                }
+                break;
             default:
                 $status = 400;
                 $response = 'Event type not found';
