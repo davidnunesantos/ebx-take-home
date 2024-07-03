@@ -85,4 +85,25 @@ class AccountTest extends TestCase
         $response->assertStatus(404);
         $response->assertContent('0');
     }
+
+    /**
+     * Test withdraw from existing account
+     * @test
+     */
+    public function it_withdraw_from_existing_account(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'withdraw',
+            'origin' => 100,
+            'amount' => 5
+        ]);
+
+        $response->assertStatus(201);
+        $response->assertJson([
+            'origin' => [
+                'id' => 100,
+                'balance' => 15
+            ]
+        ]);
+    }
 }
