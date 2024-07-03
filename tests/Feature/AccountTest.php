@@ -37,4 +37,25 @@ class AccountTest extends TestCase
             ]
         ]);
     }
+
+    /**
+     * Test deposit into existing account
+     * @test
+     */
+    public function it_deposit_into_existing_account(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'deposit',
+            'destination' => 100,
+            'amount' => 10
+        ]);
+
+        $response->assertStatus(201);
+        $response->assertJson([
+            'destination' => [
+                'id' => 100,
+                'balance' => 20
+            ]
+        ]);
+    }
 }
