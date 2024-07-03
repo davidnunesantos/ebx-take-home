@@ -69,4 +69,20 @@ class AccountTest extends TestCase
         $response->assertStatus(200);
         $response->assertContent('20');
     }
+
+    /**
+     * Test withdraw from non existing account
+     * @test
+     */
+    public function it_withdraw_from_non_existing_account(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'withdraw',
+            'origin' => 200,
+            'amount' => 10
+        ]);
+
+        $response->assertStatus(404);
+        $response->assertContent('0');
+    }
 }
