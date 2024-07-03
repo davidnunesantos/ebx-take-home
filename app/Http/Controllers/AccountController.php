@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EventRequest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use stdClass;
 
 /**
  * Account controller
@@ -15,6 +17,8 @@ class AccountController extends Controller
 
     /**
      * Reset data state
+     * 
+     * @return void
      */
     public function reset()
     {
@@ -25,7 +29,7 @@ class AccountController extends Controller
                 Storage::delete(self::FILE_NAME);
             }
 
-            Storage::put('accounts.txt', json_encode([]));
+            Storage::put('accounts.txt', '{}');
         } catch (Exception $e) {
             $status = 500;
         }
@@ -33,6 +37,12 @@ class AccountController extends Controller
         return response('OK', $status);
     }
 
+    /**
+     * Get account balance
+     *
+     * @param Request $request
+     * @return void
+     */
     public function balance(Request $request)
     {
         $account_id = $request->query('account_id');
@@ -42,8 +52,8 @@ class AccountController extends Controller
         if ($account_id) {
             $accounts = json_decode(Storage::get(self::FILE_NAME));
 
-            if ($accounts && array_key_exists($account_id, $accounts)) {
-                $response = $accounts[$account_id]->balance;
+            if ($accounts && isset($accounts->$account_id)) {
+                $response = $accounts->$account_id->balance;
             } else {
                 $status = 404;
                 $response = 0;
@@ -51,6 +61,48 @@ class AccountController extends Controller
         } else {
             $status = 400;
             $response = 'Account ID is required';
+        }
+
+        return response($response, $status);
+    }
+
+    /**
+     * Store event
+     *
+     * @param EventRequest $request
+     * @return void
+     */
+    public function event(EventRequest $request)
+    {
+        $status = 201;
+        $response = null;
+
+        $accounts = json_decode(Storage::get(self::FILE_NAME));
+
+        switch ($request->input('type')) {
+            case 'deposit':
+                $destination = $request->input('destination');
+
+                if (isset($accounts->$destination)) {
+                    $account = $accounts->$destination;
+                } else {
+                    $account = new stdClass();
+                    $account->id = $destination;
+                    $account->balance = 0;
+                }
+
+                $account->balance += $request->input('amount');
+                $accounts->$destination = $account;
+                Storage::put(self::FILE_NAME, json_encode($accounts));
+
+                $response = [
+                    'destination' => $account
+                ];
+                break;
+            default:
+                $status = 400;
+                $response = 'Event type not found';
+                break;
         }
 
         return response($response, $status);

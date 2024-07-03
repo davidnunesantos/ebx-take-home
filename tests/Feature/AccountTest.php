@@ -16,4 +16,25 @@ class AccountTest extends TestCase
         $response->assertStatus(404);
         $response->assertContent('0');
     }
+
+    /**
+     * Test create account with initial balance
+     * @test
+     */
+    public function it_create_account_with_initial_balance(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'deposit',
+            'destination' => 100,
+            'amount' => 10
+        ]);
+
+        $response->assertStatus(201);
+        $response->assertJson([
+            'destination' => [
+                'id' => 100,
+                'balance' => 10
+            ]
+        ]);
+    }
 }
