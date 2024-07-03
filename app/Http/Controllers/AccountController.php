@@ -93,17 +93,32 @@ class AccountController extends Controller
 
                 $account->balance += $request->input('amount');
                 $accounts->$destination = $account;
-                Storage::put(self::FILE_NAME, json_encode($accounts));
 
                 $response = [
                     'destination' => $account
                 ];
+                break;
+            case 'withdraw':
+                $origin = $request->input('origin');
+
+                if (isset($accounts->$origin)) {
+                    $accounts->$origin->balance -= $request->input('amount');
+
+                    $response = [
+                        'destination' => $accounts->$origin
+                    ];
+                } else {
+                    $response = 0;
+                    $status = 404;
+                }
                 break;
             default:
                 $status = 400;
                 $response = 'Event type not found';
                 break;
         }
+
+        Storage::put(self::FILE_NAME, json_encode($accounts));
 
         return response($response, $status);
     }
