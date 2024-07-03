@@ -58,4 +58,15 @@ class AccountTest extends TestCase
             ]
         ]);
     }
+
+    /**
+     * Test get balance for existing account
+     * @test
+     */
+    public function it_get_balance_for_existing_account(): void
+    {
+        $response = $this->get('/balance?account_id=100');
+        $response->assertStatus(200);
+        $response->assertContent('20');
+    }
 }
