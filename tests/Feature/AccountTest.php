@@ -106,4 +106,26 @@ class AccountTest extends TestCase
             ]
         ]);
     }
+
+    public function it_transfer_from_existing_account(): void
+    {
+        $response = $this->post('/event', [
+            'type' => 'transfer',
+            'origin' => 100,
+            'amount' => 15,
+            'destination' => 300
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'origin' => [
+                'id' => 100,
+                'balance' => 0
+            ],
+            'destination' => [
+                'id' => 300,
+                'balance' => 15
+            ]
+        ]);
+    }
 }
