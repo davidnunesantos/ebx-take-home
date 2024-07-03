@@ -81,31 +81,23 @@ class AccountController extends Controller
 
         switch ($request->input('type')) {
             case 'deposit':
-                $destination = $request->input('destination');
-
-                if (isset($accounts->$destination)) {
-                    $account = $accounts->$destination;
-                } else {
-                    $account = new stdClass();
-                    $account->id = $destination;
-                    $account->balance = 0;
-                }
-
-                $account->balance += $request->input('amount');
-                $accounts->$destination = $account;
+                $destination_id = $request->input('destination');
+                $destination_account = $this->deposit($destination_id, $request->input('amount'));
+                $accounts->$destination_id = $destination_account;
 
                 $response = [
-                    'destination' => $account
+                    'destination' => $destination_account
                 ];
                 break;
             case 'withdraw':
-                $origin = $request->input('origin');
+                $origin_id = $request->input('origin');
+                $origin_account = $this->withdraw($origin_id, $request->input('amount'));
 
-                if (isset($accounts->$origin)) {
-                    $accounts->$origin->balance -= $request->input('amount');
+                if ($origin_account) {
+                    $accounts->$origin_id = $origin_account;
 
                     $response = [
-                        'origin' => $accounts->$origin
+                        'origin' => $origin_account
                     ];
                 } else {
                     $response = 0;
@@ -113,26 +105,20 @@ class AccountController extends Controller
                 }
                 break;
             case 'transfer':
-                $origin = $request->input('origin');
-                $destination = $request->input('destination');
+                $origin_id = $request->input('origin');
+                $destination_id = $request->input('destination');
 
-                if (isset($accounts->$origin)) {
-                    $accounts->$origin->balance -= $request->input('amount');
+                $origin_account = $this->withdraw($origin_id, $request->input('amount'));
 
-                    if (isset($accounts->$destination)) {
-                        $account_destination = $accounts->$destination;
-                    } else {
-                        $account_destination = new stdClass();
-                        $account_destination->id = $destination;
-                        $account_destination->balance = 0;
-                    }
-    
-                    $account_destination->balance += $request->input('amount');
-                    $accounts->$destination = $account_destination;
+                if ($origin_account) {
+                    $accounts->$origin_id = $origin_account;
+
+                    $destination_account = $this->deposit($destination_id, $request->input('amount'));
+                    $accounts->$destination_id = $destination_account;
 
                     $response = [
-                        'origin' => $accounts->$origin,
-                        'destination' => $account_destination
+                        'origin' => $origin_account,
+                        'destination' => $destination_account
                     ];
                 } else {
                     $response = 0;
@@ -148,5 +134,49 @@ class AccountController extends Controller
         Storage::put(self::FILE_NAME, json_encode($accounts));
 
         return response($response, $status);
+    }
+
+    /**
+     * Depoist method
+     *
+     * @param int $destination_id
+     * @param int $amount
+     * @return stdClass
+     */
+    private function deposit(int $destination_id, int $amount): stdClass
+    {
+        $accounts = json_decode(Storage::get(self::FILE_NAME));
+
+        if (isset($accounts->$destination_id)) {
+            $account = $accounts->$destination_id;
+        } else {
+            $account = new stdClass();
+            $account->id = "$destination_id";
+            $account->balance = 0;
+        }
+
+        $account->balance += $amount;
+
+        return $account;
+    }
+
+    /**
+     * Withdraw method
+     *
+     * @param int $origin_id
+     * @param int $amount
+     * @return stdClass|boolean
+     */
+    private function withdraw(int $origin_id, int $amount): stdClass|bool
+    {
+        $accounts = json_decode(Storage::get(self::FILE_NAME));
+
+        if (isset($accounts->$origin_id)) {
+            $accounts->$origin_id->balance -= $amount;
+
+            return $accounts->$origin_id;
+        } else {
+            return false;
+        }
     }
 }
