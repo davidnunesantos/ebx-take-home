@@ -105,7 +105,7 @@ class AccountController extends Controller
                     $accounts->$origin->balance -= $request->input('amount');
 
                     $response = [
-                        'destination' => $accounts->$origin
+                        'origin' => $accounts->$origin
                     ];
                 } else {
                     $response = 0;
